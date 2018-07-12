@@ -75,14 +75,24 @@ read_loop_begin:
  call uppercase_conversion
  popl %eax
  addl $4, %esp       #Free the stack associated to the location of the argument
-#Write converted buffer to stdout
-
 #Write buffer to output buffer
-
-
+ movl %eax, %edx     #Buffer size
+ movl $SYS_WRITE, %eax
+ movl -8(%ebp), %ebx #Output file
+ movl $BUFFER_DATA, %ecx
+ int $LINUX_SYSCALL
+#Bonus! Write the same buffer to stdout
+ movl $SYS_WRITE, %eax
+ movl $STDOUT, %ebx
+ int $LINUX_SYSCALL
 end:
 #Close files
-
+ movl $SYS_CLOSE, %eax
+ movl -4(%ebp), %ebx
+ int $LINUX_SYSCALL
+ movl %SYS_CLOSE, %eax
+ movl -8(%ebp), %ebx
+ int $LINUX_SYSCALL
 #Call linux to exit
  movl $SYS_EXIT, %eax
  movl $0, %ebx   #Return code
@@ -96,6 +106,11 @@ end:
 #   Argument 2: The localtion of the buffer
 #
 #
+
 uppercase_conversion:
+ push %ebp
+ movl %esp, %ebp
     #TBI
+ movl %ebp, %esp
+popl %ebp
  ret
