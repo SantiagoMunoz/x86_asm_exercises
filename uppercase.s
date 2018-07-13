@@ -46,7 +46,7 @@ open_fd_in:
  movl $SYS_OPEN, %eax
  movl 8(%ebp), %ebx  #First argument was the name of the program
  movl $OPT_READONLY, %ecx
- movl $0x0666, %edx
+ movl $0666, %edx
  int $LINUX_SYSCALL
  movl %eax, -4(%ebp) #Store in file descriptor
 
@@ -54,7 +54,7 @@ open_fd_out:
  movl $SYS_OPEN, %eax
  movl 12(%ebp), %ebx  #First argument was the name of the program
  movl $OPT_CREATE_WRONLY_TRUNC, %ecx
- movl $0x0666, %edx  #Permissions for the new file
+ movl $0666, %edx  #Permissions for the new file
  int $LINUX_SYSCALL
  movl %eax, -8(%ebp) #Store in file descriptor
 
@@ -67,7 +67,7 @@ read_loop_begin:
  int $LINUX_SYSCALL
 #Have we reached the end of the file?
  cmpl $0, %eax
- je loop_end
+ je end
 
 #Convert buffer to uppercase (call to function)
  pushl $BUFFER_DATA  #Location of the buffer
@@ -85,12 +85,13 @@ read_loop_begin:
  movl $SYS_WRITE, %eax
  movl $STDOUT, %ebx
  int $LINUX_SYSCALL
+ jmp read_loop_begin
 end:
 #Close files
  movl $SYS_CLOSE, %eax
  movl -4(%ebp), %ebx
  int $LINUX_SYSCALL
- movl %SYS_CLOSE, %eax
+ movl $SYS_CLOSE, %eax
  movl -8(%ebp), %ebx
  int $LINUX_SYSCALL
 #Call linux to exit
@@ -124,10 +125,11 @@ uppercase_loop:
  je uppercase_end
  movb (%ebx, %ecx, 1), %dl  #Read bye from buffer
  cmp $'a', %dl              #Check  it is, in fact, a lowercase letter
- j uppercase_loop_end
- cmp $'z', %dl
  jl uppercase_loop_end
- addl $TO_UPPERCASE, %dl    #If its a letter, turn it into an uppercase
+ cmp $'z', %dl
+ jb uppercase_loop_end
+ addb $TO_UPPERCASE, %dl    #If its a letter, turn it into an uppercase
+ movb %dl, (%ebx, %ecx, 1)
 uppercase_loop_end:
  addl $1, %ecx              #Increase index and go to the next loop
  jmp uppercase_loop
