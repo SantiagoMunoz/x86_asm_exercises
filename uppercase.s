@@ -113,7 +113,7 @@ end:
 #    %eax is used to store the buffer location
 #    %ecx is used to store the buffer offset
 #    %dl is used to store the current byte
-.equ TO_UPPERCASE, 'A' - 'a'
+.equ TO_UPPERCASE, 'A'-'a'
 uppercase_conversion:
  push %ebp
  movl %esp, %ebp
@@ -124,10 +124,10 @@ uppercase_loop:
  cmp %ecx, %eax             #Has the offset reached the total length? Then exit
  je uppercase_end
  movb (%ebx, %ecx, 1), %dl  #Read bye from buffer
- cmp $'a', %dl              #Check  it is, in fact, a lowercase letter
+ cmpb $'a', %dl              #Check  it is, in fact, a lowercase letter
  jl uppercase_loop_end
- cmp $'z', %dl
- jb uppercase_loop_end
+ cmpb $'z', %dl
+ jg uppercase_loop_end
  addb $TO_UPPERCASE, %dl    #If its a letter, turn it into an uppercase
  movb %dl, (%ebx, %ecx, 1)
 uppercase_loop_end:
